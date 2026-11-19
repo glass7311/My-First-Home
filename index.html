@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나의 첫 번째 웹사이트</title>
+    <style>
+        /* 눈누 온글잎 박다현체 (자연스럽고 트렌디한 손글씨/필기체) */
+        @font-face {
+            font-family: 'Ownglyph_ParkDaHyun';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            background-color: #fff9c4; /* 부드럽고 따뜻한 연노란색 */
+            font-family: sans-serif;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        /* 프로필 이미지 스타일링 (기존 대체) */
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        /* --- 홀로그램 틸트 3D 카드 시스템 --- */
+        .holo-stage {
+            --tx: 0;
+            --ty: 0;
+            --hyp: 0;
+            --flip: 0deg;
+            --lift: 0;
+            --h1: 0;
+            --h2: 55;
+            --h3: 180;
+            --h4: 285;
+            --accent: #ffd66e;
+            --art-hue: 0deg;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        .holo-stage[data-tier="rare"] {
+            --h1: 195;
+            --h2: 225;
+            --h3: 170;
+            --h4: 250;
+            --accent: #7fd0ff;
+            --art-hue: -35deg;
+        }
+
+        .holo-stage[data-tier="epic"] {
+            --h1: 280;
+            --h2: 325;
+            --h3: 245;
+            --h4: 300;
+            --accent: #e2a6ff;
+            --art-hue: 40deg;
+        }
+
+        .holo-scene {
+            --ch: 340px; /* 프로필 카드 크기 */
+            position: relative;
+            width: calc(var(--ch) * 0.716);
+            height: var(--ch);
+            perspective: calc(var(--ch) * 3);
+            touch-action: none;
+        }
+
+        .holo-shadow {
+            position: absolute;
+            left: 10%;
+            right: 10%;
+            bottom: -7%;
+            height: 12%;
+            border-radius: 50%;
+            background: hsl(var(--h2) 85% 55% / 0.45);
+            filter: blur(calc(var(--ch) / 18));
+            transform: translate(calc(var(--tx) * var(--ch) * -0.08px), 0) scale(calc(1 - var(--lift) * 0.3));
+        }
+
+        .holo-card {
+            position: absolute;
+            inset: 0;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: inherit;
+            font: inherit;
+            font-size: calc(var(--ch) / 24);
+            text-align: left;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transform: translateZ(calc(var(--lift) * var(--ch) * 0.25px)) rotateX(calc(var(--ty) * -14deg)) rotateY(calc(var(--tx) * 18deg + var(--flip)));
+            transition: scale 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .holo-card:active {
+            transform: scale(0.97) translateZ(calc(var(--lift) * var(--ch) * 0.25px)) rotateX(calc(var(--ty) * -14deg)) rotateY(calc(var(--tx) * 18deg + var(--flip)));
+        }
+
+        .holo-face {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+            padding: 0.75em;
+            border-radius: 1.05em;
+            overflow: hidden;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background: linear-gradient(160deg, #1d2350, #0c0f25 52%, #16133a);
+            box-shadow: inset 0 0 0 1px #ffffff2b, inset 0 1px 0 #ffffff47, 0 calc(var(--ch) * 0.04) calc(var(--ch) * 0.12) #00000088, 0 0 calc(var(--hyp) * var(--ch) * 0.14) hsl(var(--h2) 90% 62% / 0.4);
+        }
+
+        .holo-face::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(calc(135deg + var(--tx) * 60deg), hsl(var(--h1) 95% 70%), transparent 35%, transparent 65%, hsl(var(--h3) 95% 70%));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+            pointer-events: none;
+        }
+
+        .holo-back {
+            transform: rotateY(180deg);
+            align-items: center;
+            justify-content: center;
+            gap: 1.2em;
+            background: repeating-conic-gradient(from 0deg at 50% 50%, #ffffff07 0 6deg, transparent 6deg 12deg), radial-gradient(circle at 50% 45%, hsl(var(--h4) 60% 30%), #0c0f25 65%);
+        }
+
+        .holo-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75em;
+            letter-spacing: 0.14em;
+        }
+
+        .holo-head b {
+            font-weight: 800;
+            background: linear-gradient(90deg, #fff, hsl(var(--h3) 90% 78%));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .holo-tier {
+            font-style: normal;
+            font-size: 0.8em;
+            font-weight: 700;
+            padding: 0.25em 0.65em;
+            border-radius: 99px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 1em color-mix(in srgb, var(--accent) 35%, transparent);
+        }
+
+        .holo-art {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            border-radius: 0.75em;
+            overflow: hidden;
+            background: #0b0d22;
+            box-shadow: inset 0 0 0 1px #ffffff26;
+        }
+
+        .holo-art img {
+            position: absolute;
+            inset: -6%;
+            width: 112%;
+            height: 112%;
+            object-fit: cover;
+            object-position: 50% 50%;
+            filter: hue-rotate(var(--art-hue)) saturate(1.15);
+            transform: translate(calc(var(--tx) * -4%), calc(var(--ty) * -4%));
+            transition: filter 0.6s;
+            user-select: none;
+        }
+
+        .holo-art::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent 55%, #0c0f25cc);
+            pointer-events: none;
+        }
+
+        .holo-name {
+            position: relative;
+            text-align: left;
+        }
+
+        .holo-name small {
+            display: block;
+            font-size: 0.6em;
+            letter-spacing: 0.16em;
+            color: #a8b0e0;
+        }
+
+        .holo-name strong {
+            display: block;
+            margin-top: 0.1em;
+            font-size: 1.45em;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            color: #ffffff;
+        }
+
+        .holo-stats {
+            position: relative;
+            display: grid;
+            gap: 0.35em;
+            font-size: 0.58em;
+        }
+
+        .holo-stats span {
+            display: grid;
+            grid-template-columns: 4.8em 1fr 2em;
+            align-items: center;
+            gap: 0.6em;
+        }
+
+        .holo-stats em {
+            font-style: normal;
+            letter-spacing: 0.12em;
+            color: #98a1d4;
+        }
+
+        .holo-stats i {
+            height: 0.45em;
+            border-radius: 9em;
+            background: linear-gradient(90deg, hsl(var(--h1) 95% 64%), hsl(var(--h3) 95% 64%)) 0 0 / var(--v) 100% no-repeat, #ffffff17;
+        }
+
+        .holo-stats b {
+            text-align: right;
+            font-weight: 700;
+            color: #ffffff;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .holo-emblem {
+            display: grid;
+            place-items: center;
+            width: 50%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 1px solid #ffffff3d;
+            background: conic-gradient(from calc(var(--tx) * 90deg), hsl(var(--h1) 90% 60% / 0.35), hsl(var(--h2) 90% 60% / 0.35), hsl(var(--h3) 90% 60% / 0.35), hsl(var(--h4) 90% 60% / 0.35), hsl(var(--h1) 90% 60% / 0.35));
+            box-shadow: 0 0 2.5em hsl(var(--h2) 90% 60% / 0.35), inset 0 0 1.5em #00000088;
+        }
+
+        .holo-emblem b {
+            font-size: 1.4em;
+            font-weight: 900;
+            line-height: 1.1;
+            text-align: center;
+            letter-spacing: 0.06em;
+            color: #ffffff;
+        }
+
+        .holo-back-copy {
+            display: grid;
+            gap: 0.4em;
+            text-align: center;
+            font-size: 0.88em;
+            font-weight: 600;
+            color: #d9ddff;
+        }
+
+        .holo-back-copy small {
+            font-size: 0.66em;
+            font-weight: 500;
+            letter-spacing: 0.3em;
+            color: #8b93c6;
+        }
+
+        .holo-foil {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 1 0 0 0 14 -8.6'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"), repeating-linear-gradient(115deg, hsl(var(--h1) 100% 62%) 0%, hsl(var(--h2) 100% 62%) 4%, hsl(var(--h3) 100% 62%) 8%, hsl(var(--h4) 100% 62%) 12%, hsl(var(--h1) 100% 62%) 16%);
+            background-size: 160px 160px, 300% 300%;
+            background-position: center, calc(50% + var(--tx) * 40%) calc(50% + var(--ty) * 40%);
+            background-blend-mode: screen;
+            mix-blend-mode: color-dodge;
+            opacity: calc(0.16 + var(--hyp) * 0.42);
+            filter: brightness(0.62) contrast(1.5) saturate(1.4);
+        }
+
+        .holo-front .holo-foil {
+            -webkit-mask-image: radial-gradient(ellipse 42% 26% at 50% 34%, #0007, #000 100%);
+            mask-image: radial-gradient(ellipse 42% 26% at 50% 34%, #0007, #000 100%);
+        }
+
+        .holo-glare {
+            --gx: calc(50% + var(--tx) * 48%);
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(farthest-corner circle at var(--gx) calc(50% + var(--ty) * 48%), #ffffffd9 0%, #ffffff47 16%, transparent 52%);
+            mix-blend-mode: overlay;
+            opacity: calc(0.3 + var(--hyp) * 0.7);
+        }
+
+        .holo-back .holo-glare {
+            --gx: calc(50% - var(--tx) * 48%);
+        }
+
+        .holo-shine {
+            position: absolute;
+            inset: -60%;
+            z-index: 3;
+            background: linear-gradient(105deg, transparent 42%, #ffffff8c 50%, transparent 58%);
+            transform: translate(-70%, 0);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .holo-shine.is-on {
+            animation: holo-sweep 0.9s cubic-bezier(0.3, 0.6, 0.2, 1);
+        }
+
+        @keyframes holo-sweep {
+            0% { transform: translate(-70%, 0); opacity: 1; }
+            100% { transform: translate(70%, 0); opacity: 1; }
+        }
+
+        .holo-hint {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #6a6344;
+            letter-spacing: 0.05em;
+        }
+
+        .holo-tiers {
+            margin-top: 8px;
+            display: inline-flex;
+            gap: 4px;
+            padding: 3px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+        }
+
+        .holo-tiers button {
+            min-height: 24px;
+            padding: 0 11px;
+            border: 0;
+            border-radius: 99px;
+            background: transparent;
+            color: #555;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .holo-tiers button:hover {
+            color: #000;
+        }
+
+        .holo-tiers button[aria-pressed="true"] {
+            background: linear-gradient(120deg, hsl(var(--h1) 85% 58%), hsl(var(--h3) 85% 52%));
+            color: #fff;
+            box-shadow: 0 2px 10px hsl(var(--h2) 85% 55% / 0.45);
+        }
+
+        /* 트렌디한 필기체 이메일 링크 스타일링 */
+        .email-link {
+            font-family: 'Ownglyph_ParkDaHyun', cursive;
+            font-size: 28px;
+            color: #2c3e50;
+            text-decoration: none;
+            display: inline-block;
+            padding: 6px 16px;
+            border-bottom: 2px dashed #e0a96d; /* 밑줄 포인트 */
+            transition: all 0.3s ease;
+        }
+
+        .email-link:hover {
+            color: #d35400;
+            transform: scale(1.08) rotate(-2deg); /* 마우스 올렸을 때 살짝 튀는 애니메이션 */
+        }
+
+        /* 버튼 묶음 컨테이너 */
+        .btn-group {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* --- 마그네틱 글로우 버튼 (순수 HTML/CSS/JS 이식) --- */
+        @property --glow-angle {
+            syntax: "<angle>";
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        @keyframes glow-spin {
+            to { --glow-angle: 360deg; }
+        }
+
+        @keyframes glow-ripple {
+            from {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .magnetic-glow-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5px; /* 테두리 두께 */
+            border-radius: 9999px;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            isolation: isolate;
+            transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+            user-select: none;
+        }
+
+        /* 회전하는 원뿔 그라데이션 테두리 */
+        .magnetic-glow-btn .glow-border {
+            position: absolute;
+            inset: 0;
+            z-index: -10;
+            border-radius: 9999px;
+            animation: glow-spin 3s linear infinite;
+        }
+
+        /* 외부 빛 번짐(Glow) */
+        .magnetic-glow-btn .glow-blur {
+            position: absolute;
+            inset: -4px;
+            z-index: -20;
+            border-radius: 9999px;
+            opacity: 0.45;
+            filter: blur(10px);
+            transition: opacity 0.3s;
+            animation: glow-spin 3s linear infinite;
+        }
+
+        .magnetic-glow-btn:hover .glow-blur {
+            opacity: 0.9;
+        }
+
+        /* 유튜브 테마 그라데이션 */
+        .glow-youtube .glow-border,
+        .glow-youtube .glow-blur {
+            background: conic-gradient(from var(--glow-angle), #ff0055, #ff4d4d, #ff9900, #ff0055);
+        }
+
+        /* 인스타그램 테마 그라데이션 */
+        .glow-instagram .glow-border,
+        .glow-instagram .glow-blur {
+            background: conic-gradient(from var(--glow-angle), #f09433, #dc2743, #bc1888, #405de6, #f09433);
+        }
+
+        /* 버튼 내부 콘텐츠 영역 */
+        .magnetic-glow-btn .btn-inner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            overflow: hidden;
+            border-radius: 9999px;
+            background-color: #121214;
+            padding: 8px 18px;
+            color: #ffffff;
+        }
+
+        /* 마우스 호버 시 따라다니는 스포트라이트 광원 */
+        .magnetic-glow-btn .btn-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(70px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.25), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .magnetic-glow-btn:hover .btn-inner::before {
+            opacity: 1;
+        }
+
+        /* 클릭 시 퍼지는 물결(Ripple) */
+        .glow-ripple-effect {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.35);
+            pointer-events: none;
+            animation: glow-ripple 0.6s ease-out forwards;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .glow-border, .glow-blur, .glow-ripple-effect {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>안녕하세요! 첫 웹사이트에 오신 것을 환영합니다.</h1>
+
+    <!-- 3D 홀로그램 틸트 프로필 카드 -->
+    <div class="profile-container">
+        <div id="holoStage" class="holo-stage" data-tier="legend">
+            <div id="holoScene" class="holo-scene">
+                <div class="holo-shadow"></div>
+                <button id="holoCard" class="holo-card" type="button" aria-pressed="false" aria-label="프로필 카드 뒤집기">
+                    <!-- 앞면 -->
+                    <span class="holo-face holo-front">
+                        <span class="holo-head">
+                            <b>PRO CREATOR</b>
+                            <em id="tierBadge" class="holo-tier">LEGEND</em>
+                        </span>
+                        <span class="holo-art">
+                            <img src="profile.jpg" alt="송석호 프로필 사진" draggable="false">
+                        </span>
+                        <span class="holo-name">
+                            <small>MEMBER PASS · No.0001</small>
+                            <strong>송석호</strong>
+                        </span>
+                        <span class="holo-stats">
+                            <span><em>DESIGN</em><i style="--v: 96%;"></i><b>96</b></span>
+                            <span><em>CODING</em><i style="--v: 92%;"></i><b>92</b></span>
+                            <span><em>ENERGY</em><i style="--v: 98%;"></i><b>98</b></span>
+                        </span>
+                        <span class="holo-foil"></span>
+                        <span class="holo-glare"></span>
+                        <span id="holoShine" class="holo-shine"></span>
+                    </span>
+
+                    <!-- 뒷면 -->
+                    <span class="holo-face holo-back">
+                        <span class="holo-emblem"><b>SSH<br>HOME</b></span>
+                        <span class="holo-back-copy">
+                            송석호의 첫 웹사이트
+                            <small>SINCE 2026</small>
+                        </span>
+                        <span class="holo-foil"></span>
+                        <span class="holo-glare"></span>
+                    </span>
+                </button>
+            </div>
+            
+            <p class="holo-hint">✨ 카드를 마우스로 움직이거나 클릭해서 뒤집어보세요!</p>
+
+            <!-- 등급 변경 버튼 -->
+            <div class="holo-tiers" role="group" aria-label="카드 등급">
+                <button type="button" data-tier="rare" aria-pressed="false">RARE</button>
+                <button type="button" data-tier="epic" aria-pressed="false">EPIC</button>
+                <button type="button" data-tier="legend" aria-pressed="true">LEGEND</button>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <a href="mailto:glass731@naver.com" class="email-link">glass731@naver.com</a>
+    </div>
+    <div class="btn-group">
+        <!-- 유튜브 마그네틱 글로우 버튼 -->
+        <a href="https://www.youtube.com" target="_blank" class="magnetic-glow-btn glow-youtube" data-strength="12">
+            <span class="glow-border" aria-hidden="true"></span>
+            <span class="glow-blur" aria-hidden="true"></span>
+            <span class="btn-inner">
+                <span style="color: #ff4d4d;">▶</span> YouTube 바로가기
+            </span>
+        </a>
+
+        <!-- 인스타그램 마그네틱 글로우 버튼 -->
+        <a href="https://www.instagram.com" target="_blank" class="magnetic-glow-btn glow-instagram" data-strength="12">
+            <span class="glow-border" aria-hidden="true"></span>
+            <span class="glow-blur" aria-hidden="true"></span>
+            <span class="btn-inner">
+                <span style="color: #ff76ac;">📷</span> Instagram 바로가기
+            </span>
+        </a>
+    </div>
+    <p>기본기부터 하나씩 배워가며 완성해 봐요.</p>
+
+    <!-- 마그네틱 끌림 효과 및 클릭 리플 스크립트 -->
+    <script>
+        // --- 1. 홀로그램 3D 틸트 카드 물리 엔진 (Spring 기반) ---
+        (function() {
+            const stage = document.getElementById('holoStage');
+            const scene = document.getElementById('holoScene');
+            const card = document.getElementById('holoCard');
+            const shine = document.getElementById('holoShine');
+            const tierBadge = document.getElementById('tierBadge');
+            const tierButtons = document.querySelectorAll('.holo-tiers button');
+
+            let flipped = false;
+            let currentTier = "legend";
+            const pointer = { x: 0, y: 0, active: false };
+            let kick = 0;
+
+            function spring(state, target, stiffness, damping, instant) {
+                if (instant) { state.value = target; state.speed = 0; return; }
+                state.speed = (state.speed + (target - state.value) * stiffness) * damping;
+                state.value += state.speed;
+            }
+
+            const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const tiltX = { value: 0, speed: 0 };
+            const tiltY = { value: 0, speed: 0 };
+            const flip = { value: 0, speed: 0 };
+
+            let last = performance.now();
+            let elapsed = 0;
+
+            function loop(now) {
+                const delta = Math.min(48, now - last);
+                last = now;
+                elapsed += delta;
+                const { x, y, active } = pointer;
+                const t = elapsed / 1000;
+
+                const targetX = reduce ? 0 : active ? x : Math.sin(t * 0.9) * 0.6;
+                const targetY = reduce ? 0 : active ? y : Math.cos(t * 0.65) * 0.38;
+                tiltY.speed += kick;
+                kick = 0;
+
+                const steps = Math.max(1, Math.round(delta / 16.7));
+                for (let i = 0; i < steps; i++) {
+                    spring(tiltX, targetX, 0.08, 0.8, reduce);
+                    spring(tiltY, targetY, 0.08, 0.8, reduce);
+                    spring(flip, flipped ? 180 : 0, 0.05, 0.82, reduce);
+                }
+
+                const progress = Math.min(1, Math.max(0, flip.value / 180));
+                stage.style.setProperty("--tx", tiltX.value.toFixed(4));
+                stage.style.setProperty("--ty", tiltY.value.toFixed(4));
+                stage.style.setProperty("--hyp", Math.min(1, Math.hypot(tiltX.value, tiltY.value)).toFixed(4));
+                stage.style.setProperty("--flip", `${flip.value.toFixed(2)}deg`);
+                stage.style.setProperty("--lift", Math.sin(progress * Math.PI).toFixed(4));
+
+                requestAnimationFrame(loop);
+            }
+            requestAnimationFrame(loop);
+
+            // 포인터 트래킹
+            stage.addEventListener('pointermove', (e) => {
+                const box = scene.getBoundingClientRect();
+                pointer.x = Math.max(-1, Math.min(1, (e.clientX - box.left - box.width / 2) / (box.width / 2)));
+                pointer.y = Math.max(-1, Math.min(1, (e.clientY - box.top - box.height / 2) / (box.height / 2)));
+                pointer.active = true;
+            });
+
+            stage.addEventListener('pointerleave', () => {
+                pointer.active = false;
+            });
+
+            // 카드 클릭 시 뒤집기 (Flip)
+            card.addEventListener('click', () => {
+                flipped = !flipped;
+                card.setAttribute('aria-pressed', flipped);
+                if (flipped) {
+                    setTimeout(() => triggerShine(), 380);
+                }
+            });
+
+            function triggerShine() {
+                shine.classList.remove('is-on');
+                void shine.offsetWidth; // reflow 트리거
+                shine.classList.add('is-on');
+            }
+
+            // 티어 변경 (RARE, EPIC, LEGEND)
+            tierButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const nextTier = btn.dataset.tier;
+                    stage.setAttribute('data-tier', nextTier);
+                    tierBadge.textContent = nextTier.toUpperCase();
+                    tierButtons.forEach(b => b.setAttribute('aria-pressed', b === btn));
+                    kick = -0.12;
+                    triggerShine();
+                });
+            });
+        })();
+
+        // --- 2. 마그네틱 글로우 버튼 효과 ---
+        document.querySelectorAll('.magnetic-glow-btn').forEach(btn => {
+            const strength = parseFloat(btn.dataset.strength) || 12;
+            const inner = btn.querySelector('.btn-inner');
+
+            btn.addEventListener('pointermove', e => {
+                const rect = btn.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+
+                // 포인터 쪽으로 자석처럼 끌려가는 계산 (-0.5 ~ 0.5)
+                const offsetX = (x - 0.5) * strength;
+                const offsetY = (y - 0.5) * strength;
+                btn.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+                // 버튼 내부 스포트라이트 위치 전달
+                btn.style.setProperty('--mx', `${x * 100}%`);
+                btn.style.setProperty('--my', `${y * 100}%`);
+            });
+
+            btn.addEventListener('pointerleave', () => {
+                btn.style.transform = 'translate(0px, 0px)';
+            });
+
+            btn.addEventListener('click', e => {
+                const rect = btn.getBoundingClientRect();
+                const ripple = document.createElement('span');
+                ripple.className = 'glow-ripple-effect';
+                ripple.style.left = `${e.clientX - rect.left}px`;
+                ripple.style.top = `${e.clientY - rect.top}px`;
+                inner.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 700);
+            });
+        });
+    </script>
+</body>
+</html>
